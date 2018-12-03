@@ -67,7 +67,7 @@ def backup_check(podList, logger):
     print("Starting backup check!")
     for site in podList:
         siteFilesCheck = (site, "docker-files")
-        siteDBCheck = (site, "-db-", "docker")
+        siteDBCheck = (site, "docker-db")
         print ("Verifying backups for %s" %(site))
         with open ('backup.list', 'r') as f:
             for line in f:
