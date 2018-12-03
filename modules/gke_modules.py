@@ -59,6 +59,7 @@ def find_wp_gke():
     return podList
 
 def backup_check(podList, logger):
+    open('error.log', 'w').close()
     failedBackups = 0
     sfBackup = False
     dbBackup = False
