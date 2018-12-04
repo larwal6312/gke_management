@@ -50,23 +50,27 @@ def find_wp_gke():
             podName = str(json_dict['items'][count]['metadata']['name'])
             f.closed
         if "wordpress" in podName:
-            site = podName.split("-")[0]
-            podList.append('%s' %(site))
+            podList.append('%s' %(podName))
             count += 1
         else:
             count += 1
             pass
+    print podList
     return podList
 
 def backup_check(podList, logger):
     open('error.log', 'w').close()
+    pods = []
     failedBackups = 0
     sfBackup = False
     dbBackup = False
     sfValid = False
     dbValid = False
+    for value in podList:
+        name = value.split("-")[0]
+        pods.append('%s' %(name))
     print("Starting backup check!")
-    for site in podList:
+    for site in pods:
         siteFilesCheck = (site, "docker-files")
         siteDBCheck = (site, "docker-db")
         print ("Verifying backups for %s" %(site))
