@@ -1,3 +1,6 @@
+### Functions for managing wp in GKE ###
+
+### Logging ###
 def logging():
     import logging
     logger = logging.getLogger('logger')
@@ -11,6 +14,7 @@ def logging():
     logger.addHandler(consoleHandler)
     return logger
 
+### Build backup list ###
 def backup_list(logger, s3_access, s3_key):
     import datetime
     import os
@@ -32,6 +36,7 @@ def backup_list(logger, s3_access, s3_key):
         logger.error("backup.list size is null, Script could not finish")
         sys.exit(1)
 
+### Find wp pods in GKE ###
 def find_wp_gke():
     import os
     import json
@@ -49,15 +54,18 @@ def find_wp_gke():
             json_dict = json.load(f)
             podName = str(json_dict['items'][count]['metadata']['name'])
             f.closed
-        if "wordpress" in podName:
+        if "borderwall" in podName:
+            count += 1
+            pass
+        elif "wordpress" in podName:
             podList.append('%s' %(podName))
             count += 1
         else:
             count += 1
             pass
-    print podList
     return podList
 
+### Verify backups exist and are valid ###
 def backup_check(podList, logger):
     open('error.log', 'w').close()
     pods = []
@@ -115,3 +123,41 @@ def backup_check(podList, logger):
         elif ((sfValid, dbValid)):
             print("Backups for are valid for %s" %(site))
     return failedBackups
+
+### Call WP API to find latest version ###
+def latest_version():
+    import urllib2
+    import json
+    print("Calling wordpress API")
+    url = "https://api.wordpress.org/core/version-check/1.7/"
+    response = urllib2.urlopen(url)
+    wpdata = response.read()
+    values = json.loads(wpdata)
+    latestVersion = values['offers'][0]['current']
+    print("The latest version of wordpres is %s\n" %(latestVersion))
+    return latestVersion
+
+### Find wave2 adportal pods in GKE ###
+def find_wave2_adportals():
+    import os
+    import json
+    print("Finding wave2 pods")
+    podList = []
+    allPods = os.popen("kubectl -o=json get pods").read()
+    podJson = json.loads(allPods)
+    podCount = len(podJson['items'])
+    podCount -= 1
+    count = 0
+    while podCount >= count:
+        podName = str(podJson['items'][count]['metadata']['name'])
+        if "wave2-tomcat" in podName:
+            if "test" in podName:
+                count += 1
+                pass
+            else:
+                count += 1
+                podList.append(podName)
+        else:
+            count += 1
+            pass
+    return podList
